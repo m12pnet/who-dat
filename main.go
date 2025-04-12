@@ -16,6 +16,22 @@ import (
 //go:embed dist/*
 var staticAssets embed.FS
 
+// corsMiddleware adds CORS headers to all responses
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	// Create a sub-directory filesystem from the embedded files
 	subFS, err := fs.Sub(staticAssets, "dist")
@@ -26,7 +42,10 @@ func main() {
 	// Create a file server for the sub-directory filesystem
 	embeddedServer := http.FileServer(http.FS(subFS))
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// Create a new mux to handle all routes
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		path := strings.TrimPrefix(r.URL.Path, "/")
 
 		if path == "docs" {
@@ -72,5 +91,8 @@ __          ___             _____        _  ___
 `
 	log.Println(asciiArt)
 	log.Printf("\nWelcome to Who-Dat - WHOIS Lookup Service.\nApp up and running at %s", serverAddress)
-	log.Fatal(http.ListenAndServe(serverAddress, nil))
+
+	// Wrap the mux with CORS middleware
+	handler := corsMiddleware(mux)
+	log.Fatal(http.ListenAndServe(serverAddress, handler))
 }
