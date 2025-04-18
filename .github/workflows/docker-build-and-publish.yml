@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: registry.m12p.net
-  IMAGE_NAME: m12p-web
+  IMAGE_NAME: who-dat
 
 jobs:
   build-and-push-image:
