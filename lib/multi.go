@@ -39,7 +39,7 @@ func GetMultiWhois(ctx context.Context, domains []string) ([]whoisparser.WhoisIn
 
 		result, err := whoisparser.Parse(raw)
 		if err != nil {
-			fmt.Println("Domain:", domain, "Error: Not registered")
+			fmt.Println("Domain:", domain, "Available")
 			allWhois = append(allWhois, whoisparser.WhoisInfo{})
 			continue
 		}
